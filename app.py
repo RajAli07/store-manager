@@ -1,7 +1,10 @@
-from flask import Flask, render_template
+from datetime import datetime
+
+from flask import Flask, render_template, request
 from pymongo.errors import PyMongoError
 
 import helpers
+import stats
 from config import Config
 from db import get_db
 from routes.contacts import bp as contacts_bp
@@ -14,6 +17,7 @@ def create_app():
     app.config.from_object(Config)
 
     app.jinja_env.filters["inr"] = helpers.inr
+    app.jinja_env.filters["inr_short"] = helpers.inr_short
     app.jinja_env.filters["dt"] = helpers.fmt_dt
     app.jinja_env.filters["pretty"] = helpers.pretty_json
     app.jinja_env.globals["dig"] = helpers.dig
@@ -23,32 +27,21 @@ def create_app():
     app.register_blueprint(orders_bp)
     app.register_blueprint(contacts_bp)
 
-    @app.route("/")
-    def dashboard():
-        db = get_db()
-        counts = {
-            name: db[name].estimated_document_count()
-            for name in ("products", "orders", "contacts")
+    @app.context_processor
+    def inject_globals():
+        return {
+            "app_name": Config.APP_NAME,
+            "owner_name": Config.OWNER_NAME,
+            "year": datetime.now().year,
         }
 
-        rev = list(db.orders.aggregate([
-            {"$match": {"status": {"$nin": ["Cancelled", "Returned"]}}},
-            {"$group": {"_id": None, "total": {"$sum": "$billing.grand_total"}}},
-        ]))
-        revenue = rev[0]["total"] if rev else 0
-
-        by_status = list(db.orders.aggregate([
-            {"$group": {"_id": "$status", "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}},
-        ]))
-
-        low_stock = db.products.count_documents({"inventory.total_stock": {"$gt": 0, "$lte": 10}})
-        out_stock = db.products.count_documents({"inventory.total_stock": {"$lte": 0}})
-        recent = list(db.orders.find().sort("order_date", -1).limit(8))
-
+    @app.route("/")
+    def dashboard():
+        s, at = stats.get_stats(force=request.args.get("refresh") == "1")
+        recent = list(get_db()["orders"].find().sort("order_date", -1).limit(8))
         return render_template(
-            "dashboard.html", counts=counts, revenue=revenue, by_status=by_status,
-            low_stock=low_stock, out_stock=out_stock, recent=recent, active="dashboard",
+            "dashboard.html", s=s, updated=datetime.fromtimestamp(at),
+            recent=recent, active="dashboard",
         )
 
     @app.errorhandler(404)

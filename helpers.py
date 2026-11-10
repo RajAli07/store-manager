@@ -150,3 +150,17 @@ class FormReader:
             self.errors.append(f"{label}: list hona chahiye, jaise [ {{...}} ].")
             return []
         return data
+
+def inr_short(value):
+    """1250000 -> ₹12.50 L, 30000000 -> ₹3.00 Cr"""
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return "-"
+    if v >= 1e7:
+        return f"₹{v / 1e7:.2f} Cr"
+    if v >= 1e5:
+        return f"₹{v / 1e5:.2f} L"
+    if v >= 1e3:
+        return f"₹{v / 1e3:.1f}K"
+    return f"₹{v:,.0f}"

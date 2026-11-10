@@ -1,56 +1,125 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · Store Manager{% endblock %}
+{% block title %}Dashboard · {{ app_name }}{% endblock %}
 
 {% block content %}
+{% macro bar(label, note, pct) %}
+<li>
+    <div class="hb-top"><span>{{ label }}</span><span class="sub">{{ note }}</span></div>
+    <div class="hb-track">
+        <div class="hb-fill" style="width: {{ pct }}%"></div>
+    </div>
+</li>
+{% endmacro %}
+
 <div class="page-head">
-    <h1>Dashboard</h1>
+    <div>
+        <h1>Dashboard</h1>
+        <span class="sub">Updated {{ updated.strftime('%d %b, %I:%M %p') }} · <a
+                href="{{ url_for('dashboard', refresh=1) }}">Refresh</a></span>
+    </div>
 </div>
 
 <div class="stat-row">
-    <a class="stat" href="/products">
-        <span class="stat-label">Products</span>
-        <span class="stat-num">{{ "{:,}".format(counts.products) }}</span>
-    </a>
-    <a class="stat" href="/orders">
-        <span class="stat-label">Orders</span>
-        <span class="stat-num">{{ "{:,}".format(counts.orders) }}</span>
-    </a>
-    <a class="stat" href="/contacts">
-        <span class="stat-label">Contacts</span>
-        <span class="stat-num">{{ "{:,}".format(counts.contacts) }}</span>
+    <a class="stat" href="{{ url_for('orders.index') }}">
+        <span class="stat-label">Revenue</span>
+        <span class="stat-num">{{ s.kpi.revenue | inr_short }}</span>
+        <span class="stat-sub">{{ "{:,}".format(s.kpi.valid_orders) }} orders (cancelled/returned ke bina)</span>
     </a>
     <div class="stat">
-        <span class="stat-label">Revenue (cancelled/returned ke bina)</span>
-        <span class="stat-num">{{ revenue | inr }}</span>
+        <span class="stat-label">Avg order value</span>
+        <span class="stat-num">{{ s.kpi.avg_order | inr }}</span>
+        <span class="stat-sub">{{ "{:,}".format(s.kpi.orders) }} total orders</span>
     </div>
-</div>
-
-<div class="stat-row" style="margin-top:14px">
+    <a class="stat" href="{{ url_for('orders.index', payment='pending') }}">
+        <span class="stat-label">Pending payments</span>
+        <span class="stat-num">{{ s.kpi.unpaid_amount | inr_short }}</span>
+        <span class="stat-sub">{{ s.kpi.unpaid_count }} orders</span>
+    </a>
+    <a class="stat" href="{{ url_for('products.index') }}">
+        <span class="stat-label">Inventory value</span>
+        <span class="stat-num">{{ s.kpi.stock_value | inr_short }}</span>
+        <span class="stat-sub">{{ "{:,}".format(s.kpi.stock_units) }} units · {{ "{:,}".format(s.kpi.products) }}
+            products</span>
+    </a>
     <a class="stat" href="{{ url_for('products.index', stock='low') }}">
-        <span class="stat-label">Low stock products</span>
-        <span class="stat-num">{{ low_stock }}</span>
+        <span class="stat-label">Stock alerts</span>
+        <span class="stat-num">{{ s.kpi.low + s.kpi.out }}</span>
+        <span class="stat-sub">{{ s.kpi.low }} low · {{ s.kpi.out }} out of stock</span>
     </a>
-    <a class="stat" href="{{ url_for('products.index', stock='out') }}">
-        <span class="stat-label">Out of stock products</span>
-        <span class="stat-num">{{ out_stock }}</span>
+    <a class="stat" href="{{ url_for('contacts.index') }}">
+        <span class="stat-label">Contacts</span>
+        <span class="stat-num">{{ "{:,}".format(s.kpi.contacts) }}</span>
+        <span class="stat-sub">{{ s.kpi.prime }} prime members</span>
     </a>
 </div>
 
-<div class="cols" style="margin-top:16px">
+<div class="split">
+    <div class="card">
+        <h2>Revenue by month</h2>
+        {% if s.months %}
+        <div class="columns">
+            {% for m in s.months %}
+            <div class="col-item" title="{{ m.label }}: {{ m.revenue | inr }} ({{ m.orders }} orders)">
+                <span class="col-val">{{ m.revenue | inr_short }}</span>
+                <div class="col-track">
+                    <div class="col-bar" style="height: {{ (m.pct * 1.4) | round | int }}px"></div>
+                </div>
+                <span class="col-label">{{ m.label }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="sub">Abhi monthly data nahi hai.</p>
+        {% endif %}
+    </div>
+
     <div class="card">
         <h2>Orders by status</h2>
+        <ul class="hbars">
+            {% for r in s.by_status %}
+            {{ bar(r.name, "{:,}".format(r.count), r.pct) }}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="cols">
+    <div class="card">
+        <h2>Top products (kitne bike)</h2>
+        <ul class="hbars">
+            {% for r in s.top_products %}
+            {{ bar(r.name ~ ' · ' ~ r.sku, r.qty ~ ' sold', r.pct) }}
+            {% else %}<li class="sub">Data nahi.</li>{% endfor %}
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Top customers (kharche ke hisaab se)</h2>
+        <ul class="hbars">
+            {% for r in s.top_customers %}
+            {{ bar(r.name, (r.spent | inr_short) ~ ' · ' ~ r.orders ~ ' orders', r.pct) }}
+            {% else %}<li class="sub">Data nahi.</li>{% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="cols">
+    <div class="card">
+        <h2>Restock chahiye (stock 10 ya kam)</h2>
         <div class="table-wrap">
             <table>
                 <tbody>
-                    {% for s in by_status %}
+                    {% for p in s.restock %}
+                    {% set st = dig(p, 'inventory.total_stock', 0) %}
                     <tr>
-                        <td><a href="{{ url_for('orders.index', status=s._id) }}"><span
-                                    class="badge {{ status_class(s._id) }}">{{ s._id or 'No status' }}</span></a></td>
-                        <td class="num">{{ "{:,}".format(s.count) }}</td>
+                        <td><a href="{{ url_for('products.detail', doc_id=p._id) }}">{{ p.name }}</a> <span
+                                class="sub">{{ p.sku }}</span></td>
+                        <td class="num">{% if st <= 0 %}<span class="badge bad">Out</span>{% else %}<span
+                                    class="badge warn">{{ st }}</span>{% endif %}</td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td class="sub">Abhi koi order nahi.</td>
+                        <td class="sub">Sab products ka stock theek hai.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -59,25 +128,66 @@
     </div>
 
     <div class="card">
-        <h2>Recent orders</h2>
-        <div class="table-wrap">
-            <table>
-                <tbody>
-                    {% for o in recent %}
-                    <tr>
-                        <td><a href="{{ url_for('orders.detail', doc_id=o._id) }}">{{ o._id }}</a></td>
-                        <td>{{ o.order_date | dt }}</td>
-                        <td class="num">{{ dig(o, 'billing.grand_total') | inr }}</td>
-                        <td><span class="badge {{ status_class(o.status) }}">{{ o.status }}</span></td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td class="sub">Abhi koi order nahi.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <h2>Category ke hisaab se inventory value</h2>
+        <ul class="hbars">
+            {% for r in s.by_category %}
+            {{ bar(r.name, (r.value | inr_short) ~ ' · ' ~ "{:,}".format(r.products) ~ ' products', r.pct) }}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="cols">
+    <div class="card">
+        <h2>Payment methods</h2>
+        <ul class="hbars">
+            {% for r in s.by_payment %}{{ bar(r.name, "{:,}".format(r.count), r.pct) }}{% endfor %}
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Top cities (orders)</h2>
+        <ul class="hbars">
+            {% for r in s.top_cities %}{{ bar(r.name, "{:,}".format(r.count), r.pct) }}{% endfor %}
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Membership tiers</h2>
+        <ul class="hbars">
+            {% for r in s.tiers %}{{ bar(r.name, "{:,}".format(r.count), r.pct) }}{% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent orders</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th class="num">Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in recent %}
+                <tr>
+                    <td><a href="{{ url_for('orders.detail', doc_id=o._id) }}">{{ o._id }}</a></td>
+                    <td>{{ o.order_date | dt }}</td>
+                    <td>{% if o.customer_id %}<a href="{{ url_for('contacts.detail', doc_id=o.customer_id) }}">{{
+                            o.customer_id }}</a>{% else %}-{% endif %}</td>
+                    <td class="num">{{ dig(o, 'billing.grand_total') | inr }}</td>
+                    <td><span class="badge {{ status_class(o.status) }}">{{ o.status }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="sub">Abhi koi order nahi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

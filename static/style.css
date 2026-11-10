@@ -414,3 +414,136 @@ code {
         padding: 18px 14px;
     }
 }
+
+/* brand + footer */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px 18px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.brand:hover {
+    text-decoration: none;
+}
+
+.footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12.5px;
+}
+
+/* dashboard */
+.stat-sub {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.split {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.cols {
+    margin-top: 0;
+}
+
+@media (max-width: 900px) {
+    .split {
+        grid-template-columns: 1fr;
+    }
+}
+
+.columns {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.col-item {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.col-val {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    white-space: nowrap;
+}
+
+.col-track {
+    height: 140px;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+}
+
+.col-bar {
+    width: 100%;
+    background: var(--accent);
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
+}
+
+.col-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    white-space: nowrap;
+}
+
+.hbars {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.hbars li {
+    margin-bottom: 12px;
+}
+
+.hbars li:last-child {
+    margin-bottom: 0;
+}
+
+.hb-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.hb-top span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hb-track {
+    height: 6px;
+    background: #ecebe6;
+    border-radius: 3px;
+}
+
+.hb-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+}

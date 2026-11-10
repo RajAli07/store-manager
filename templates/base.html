@@ -4,13 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Store Manager{% endblock %}</title>
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
     <aside class="sidebar">
-        <div class="brand">Store Manager</div>
+        <a class="brand" href="/">
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="" width="30" height="30">
+            <span>{{ app_name }}</span>
+        </a>
         <nav>
             <a href="/" class="{{ 'on' if active == 'dashboard' }}">Dashboard</a>
             <a href="/products" class="{{ 'on' if active == 'products' }}">Products</a>
@@ -27,6 +31,11 @@
         {% endwith %}
 
         {% block content %}{% endblock %}
+
+        <footer class="footer">
+            <span>© {{ year }} {{ owner_name }}. All rights reserved.</span>
+            <span>{{ app_name }} · Flask &amp; MongoDB Atlas</span>
+        </footer>
     </main>
 </body>
 

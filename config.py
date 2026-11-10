@@ -10,3 +10,6 @@ class Config:
     MONGO_URI = os.environ["MONGO_URI"]
     MONGO_DB_NAME = os.environ.get("MONGO_DB_NAME", "ecommerce")
     PAGE_SIZE = 25
+
+    APP_NAME = os.environ.get("APP_NAME", "StockWise")
+    OWNER_NAME = os.environ.get("OWNER_NAME", "Your Name")
