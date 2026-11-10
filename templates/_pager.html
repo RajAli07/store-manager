@@ -1,0 +1,15 @@
+{% macro pager(data, endpoint) %}
+<div class="pager">
+    <span>{{ data.start }}–{{ data.end }} of {{ "{:,}".format(data.total) }}</span>
+    <div class="links">
+        {% if data.page > 1 %}
+        <a class="btn sm"
+            href="{{ url_for(endpoint, **dict(request.args.to_dict(), page=data.page - 1)) }}">Previous</a>
+        {% endif %}
+        <span>Page {{ data.page }} of {{ data.pages }}</span>
+        {% if data.page < data.pages %} <a class="btn sm"
+            href="{{ url_for(endpoint, **dict(request.args.to_dict(), page=data.page + 1)) }}">Next</a>
+            {% endif %}
+    </div>
+</div>
+{% endmacro %}

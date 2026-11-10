@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+    <h1>Database error</h1>
+</div>
+<div class="card">
+    <p>MongoDB se connect nahi ho paya. Check karo: <code>.env</code> ka URI/password, Atlas Network Access mein tumhara
+        IP, aur internet.</p>
+    <pre class="code">{{ error }}</pre>
+</div>
+{% endblock %}

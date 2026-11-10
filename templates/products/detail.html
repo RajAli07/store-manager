@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }} · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ p.name }}</h1>
+        <span class="sub"><a href="{{ url_for('products.index') }}">Products</a> / {{ p.sku or p._id }}</span>
+    </div>
+    <div>
+        <a class="btn" href="{{ url_for('products.edit', doc_id=p._id) }}">Edit</a>
+        <form method="post" action="{{ url_for('products.delete', doc_id=p._id) }}" style="display:inline"
+            onsubmit="return confirm('Ye product permanently delete hoga. Pakka?')">
+            <button class="btn danger" type="submit">Delete</button>
+        </form>
+    </div>
+</div>
+
+<div class="cols">
+    <div class="card">
+        <h2>Basic info</h2>
+        <dl class="kv">
+            <dt>ID</dt>
+            <dd><code>{{ p._id }}</code></dd>
+            <dt>SKU</dt>
+            <dd>{{ p.sku or '-' }}</dd>
+            <dt>Category</dt>
+            <dd>{{ p.category or '-' }}</dd>
+            <dt>Sub category</dt>
+            <dd>{{ p.sub_category or '-' }}</dd>
+            <dt>Brand</dt>
+            <dd>{{ p.brand or '-' }}</dd>
+            <dt>Rating</dt>
+            <dd>{{ dig(p, 'ratings.average', '-') }} ({{ dig(p, 'ratings.count', 0) }} reviews)</dd>
+            <dt>Tags</dt>
+            <dd>{% for t in p.tags or [] %}<span class="badge">{{ t }}</span> {% else %}-{% endfor %}</dd>
+            <dt>Created</dt>
+            <dd>{{ p.created_at | dt }}</dd>
+            <dt>Updated</dt>
+            <dd>{{ p.updated_at | dt }}</dd>
+        </dl>
+    </div>
+
+    <div class="card">
+        <h2>Pricing</h2>
+        <dl class="kv">
+            <dt>MRP</dt>
+            <dd>{{ dig(p, 'pricing.mrp') | inr }}</dd>
+            <dt>Selling price</dt>
+            <dd><b>{{ dig(p, 'pricing.selling_price') | inr }}</b></dd>
+            <dt>Discount</dt>
+            <dd>{{ dig(p, 'pricing.discount_percent', 0) }}%</dd>
+            <dt>GST</dt>
+            <dd>{{ dig(p, 'pricing.gst_percent', 0) }}%</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Inventory
+        {% set st = dig(p, 'inventory.total_stock', 0) %}
+        {% if st <= 0 %}<span class="badge bad">Out of stock</span>
+            {% elif st <= 10 %}<span class="badge warn">Low stock</span>
+                {% else %}<span class="badge ok">In stock</span>{% endif %}
+    </h2>
+    <p>Total stock: <b>{{ st }}</b></p>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>City</th>
+                    <th>Code</th>
+                    <th class="num">Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for w in dig(p, 'inventory.warehouses', []) %}
+                <tr>
+                    <td>{{ w.city }}</td>
+                    <td>{{ w.code }}</td>
+                    <td class="num">{{ w.stock }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="sub">Koi warehouse nahi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Variants</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Color</th>
+                    <th>Edition</th>
+                    <th class="num">Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in p.variants or [] %}
+                <tr>
+                    <td>{{ v.color }}</td>
+                    <td>{{ v.edition }}</td>
+                    <td class="num">{{ v.stock }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="sub">Koi variant nahi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Raw document (MongoDB mein jaisa stored hai)</h2>
+    <pre class="code">{{ p | pretty }}</pre>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>Dashboard</h1>
+</div>
+
+<div class="stat-row">
+    <a class="stat" href="/products">
+        <span class="stat-label">Products</span>
+        <span class="stat-num">{{ "{:,}".format(counts.products) }}</span>
+    </a>
+    <a class="stat" href="/orders">
+        <span class="stat-label">Orders</span>
+        <span class="stat-num">{{ "{:,}".format(counts.orders) }}</span>
+    </a>
+    <a class="stat" href="/contacts">
+        <span class="stat-label">Contacts</span>
+        <span class="stat-num">{{ "{:,}".format(counts.contacts) }}</span>
+    </a>
+</div>
+{% endblock %}

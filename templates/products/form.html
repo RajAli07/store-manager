@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Add product' if mode == 'new' else 'Edit product' }} · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>{{ 'Add product' if mode == 'new' else 'Edit: ' ~ p.name }}</h1>
+</div>
+
+<form method="post">
+    <div class="card">
+        <h2>Basic info</h2>
+        <div class="form-grid">
+            {% if mode == 'new' %}
+            <div>
+                <label>ID (optional, khali chhodo to auto)</label>
+                <input type="text" name="_id" value="{{ v._id }}">
+            </div>
+            {% endif %}
+            <div><label>SKU *</label><input type="text" name="sku" value="{{ v.sku }}" required></div>
+            <div><label>Name *</label><input type="text" name="name" value="{{ v.name }}" required></div>
+            <div>
+                <label>Category</label>
+                <input type="text" name="category" value="{{ v.category }}" list="cat-list">
+                <datalist id="cat-list">{% for c in categories %}<option value="{{ c }}">{% endfor %}</datalist>
+            </div>
+            <div><label>Sub category</label><input type="text" name="sub_category" value="{{ v.sub_category }}"></div>
+            <div><label>Brand</label><input type="text" name="brand" value="{{ v.brand }}"></div>
+            <div><label>Tags (comma se alag)</label><input type="text" name="tags" value="{{ v.tags }}"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Pricing</h2>
+        <div class="form-grid">
+            <div><label>MRP *</label><input type="number" step="any" min="0" name="mrp" value="{{ v.mrp }}" required>
+            </div>
+            <div><label>Selling price *</label><input type="number" step="any" min="0" name="selling_price"
+                    value="{{ v.selling_price }}" required></div>
+            <div><label>GST %</label><input type="number" step="any" min="0" name="gst_percent"
+                    value="{{ v.gst_percent }}"></div>
+        </div>
+        <p class="sub">Discount % khud calculate hota hai.</p>
+    </div>
+
+    <div class="card">
+        <h2>Stock</h2>
+        <div class="form-grid">
+            <div><label>Total stock</label><input type="number" min="0" name="total_stock" value="{{ v.total_stock }}">
+            </div>
+        </div>
+        <p class="sub">Agar neeche warehouses diye hain to total stock unka jod hoga aur ye box ignore hoga.</p>
+        <label style="margin-top:12px">Warehouses (JSON list)</label>
+        <textarea class="json" name="warehouses"
+            placeholder='[{"city": "Delhi", "code": "DEL-01", "stock": 40}]'>{{ v.warehouses }}</textarea>
+    </div>
+
+    <div class="card">
+        <h2>Variants</h2>
+        <label>Variants (JSON list)</label>
+        <textarea class="json" name="variants"
+            placeholder='[{"color": "Black", "edition": "Standard", "stock": 10}]'>{{ v.variants }}</textarea>
+    </div>
+
+    <button class="btn primary" type="submit">{{ 'Add product' if mode == 'new' else 'Save changes' }}</button>
+    <a class="btn"
+        href="{{ url_for('products.index') if mode == 'new' else url_for('products.detail', doc_id=p._id) }}">Cancel</a>
+</form>
+{% endblock %}

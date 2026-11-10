@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% from "_pager.html" import pager with context %}
+{% block title %}Products · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>Products</h1>
+    <a class="btn primary" href="{{ url_for('products.create') }}">Add product</a>
+</div>
+
+<form class="filters" method="get">
+    <div class="grow">
+        <label>Search</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Name, brand, SKU or ID">
+    </div>
+    <div class="field">
+        <label>Category</label>
+        <select name="category">
+            <option value="">All</option>
+            {% for c in categories %}
+            <option value="{{ c }}" {{ 'selected' if c==category }}>{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label>Stock</label>
+        <select name="stock">
+            <option value="">All</option>
+            <option value="in" {{ 'selected' if stock=='in' }}>In stock</option>
+            <option value="low" {{ 'selected' if stock=='low' }}>Low (10 or less)</option>
+            <option value="out" {{ 'selected' if stock=='out' }}>Out of stock</option>
+        </select>
+    </div>
+    <div class="field">
+        <label>Sort by</label>
+        <select name="sort">
+            <option value="name" {{ 'selected' if sort=='name' }}>Name</option>
+            <option value="price_low" {{ 'selected' if sort=='price_low' }}>Price: low to high</option>
+            <option value="price_high" {{ 'selected' if sort=='price_high' }}>Price: high to low</option>
+            <option value="stock_low" {{ 'selected' if sort=='stock_low' }}>Stock: low to high</option>
+            <option value="stock_high" {{ 'selected' if sort=='stock_high' }}>Stock: high to low</option>
+        </select>
+    </div>
+    <button class="btn primary" type="submit">Apply</button>
+    <a class="btn" href="{{ url_for('products.index') }}">Reset</a>
+</form>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>SKU</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Brand</th>
+                <th class="num">Price</th>
+                <th class="num">Stock</th>
+                <th>Rating</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in data["items"] %}
+            {% set st = dig(p, 'inventory.total_stock', 0) %}
+            <tr>
+                <td><a href="{{ url_for('products.detail', doc_id=p._id) }}">{{ p.sku or p._id }}</a></td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.category }}{% if p.sub_category %} <span class="sub">/ {{ p.sub_category }}</span>{% endif %}
+                </td>
+                <td>{{ p.brand }}</td>
+                <td class="num">{{ dig(p, 'pricing.selling_price') | inr }}</td>
+                <td class="num">
+                    {% if st <= 0 %}<span class="badge bad">Out</span>
+                        {% elif st <= 10 %}<span class="badge warn">{{ st }}</span>
+                            {% else %}<span class="badge ok">{{ st }}</span>{% endif %}
+                </td>
+                <td>{{ dig(p, 'ratings.average', '-') }} <span class="sub">({{ dig(p, 'ratings.count', 0) }})</span>
+                </td>
+                <td class="actions">
+                    <a class="btn sm" href="{{ url_for('products.detail', doc_id=p._id) }}">View</a>
+                    <a class="btn sm" href="{{ url_for('products.edit', doc_id=p._id) }}">Edit</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="sub">Koi product nahi mila.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{{ pager(data, 'products.index') }}
+{% endblock %}
