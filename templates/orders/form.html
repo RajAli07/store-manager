@@ -11,7 +11,7 @@
         <h2>Order</h2>
         <div class="form-grid">
             {% if mode == 'new' %}
-            <div><label>Order ID (khali chhodo to auto)</label><input type="text" name="_id" value="{{ v._id }}"></div>
+            <div><label>Order ID (leave blank to auto-generate)</label><input type="text" name="_id" value="{{ v._id }}"></div>
             {% endif %}
             <div><label>Customer ID *</label><input type="text" name="customer_id" value="{{ v.customer_id }}" required>
             </div>
@@ -29,7 +29,7 @@
             </div>
             <div>
                 <label class="check"><input type="checkbox" name="is_paid" value="1" {{ 'checked' if v.is_paid }}>
-                    Payment ho chuka hai</label>
+                    Payment received</label>
             </div>
         </div>
     </div>

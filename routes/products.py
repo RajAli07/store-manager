@@ -71,7 +71,7 @@ def parse_form(form):
         try:
             return cast(raw)
         except ValueError:
-            errors.append(f"{name} ek number hona chahiye.")
+            errors.append(f"{name} must be a number.")
             return None
 
     def json_list(name):
@@ -81,18 +81,18 @@ def parse_form(form):
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as e:
-            errors.append(f"{name}: JSON galat hai ({e.msg}, line {e.lineno}).")
+            errors.append(f"{name}: invalid JSON ({e.msg}, line {e.lineno}).")
             return []
         if not isinstance(data, list):
-            errors.append(f"{name}: list hona chahiye, jaise [ {{...}} ].")
+            errors.append(f"{name}: must be a list, e.g. [ {{...}} ].")
             return []
         return data
 
     sku, name = text("sku"), text("name")
     if not sku:
-        errors.append("SKU zaroori hai.")
+        errors.append("SKU is required.")
     if not name:
-        errors.append("Name zaroori hai.")
+        errors.append("Name is required.")
 
     mrp = number("mrp")
     selling = number("selling_price")
@@ -102,16 +102,16 @@ def parse_form(form):
     variants = json_list("variants")
 
     if mrp is None or selling is None:
-        errors.append("MRP aur Selling price dono chahiye.")
+        errors.append("Both MRP and selling price are required.")
     elif selling > mrp:
-        errors.append("Selling price MRP se zyada nahi ho sakta.")
+        errors.append("Selling price cannot be higher than MRP.")
     discount = round((mrp - selling) / mrp * 100, 1) if mrp and selling is not None else 0
 
     if warehouses:
         try:
             total = sum(int(w.get("stock", 0)) for w in warehouses)
         except (AttributeError, TypeError, ValueError):
-            errors.append("warehouses ka har item object ho aur uska stock number ho.")
+            errors.append("Each warehouse must be an object with a numeric stock.")
             total = 0
     else:
         total = stock_input or 0
@@ -180,7 +180,7 @@ def create():
         v = request.form.to_dict()
         fields, errors = parse_form(request.form)
         if not errors and coll().count_documents({"sku": fields["sku"]}, limit=1):
-            errors.append("Is SKU ka product pehle se maujood hai.")
+            errors.append("A product with this SKU already exists.")
         if not errors:
             doc = unflatten(fields)
             doc["ratings"] = {"average": 0, "count": 0}
@@ -191,9 +191,9 @@ def create():
             try:
                 coll().insert_one(doc)
             except DuplicateKeyError:
-                errors.append("Ye ID pehle se use mein hai.")
+                errors.append("This ID is already in use.")
             else:
-                flash("Product add ho gaya.", "success")
+                flash("Product added.", "success")
                 return redirect(url_for("products.detail", doc_id=doc["_id"]))
         for e in errors:
             flash(e, "error")
@@ -213,10 +213,10 @@ def edit(doc_id):
         v = request.form.to_dict()
         fields, errors = parse_form(request.form)
         if not errors and c.count_documents({"sku": fields["sku"], "_id": {"$ne": p["_id"]}}, limit=1):
-            errors.append("Is SKU ka dusra product pehle se maujood hai.")
+            errors.append("Another product with this SKU already exists.")
         if not errors:
             c.update_one({"_id": p["_id"]}, {"$set": fields})
-            flash("Product update ho gaya.", "success")
+            flash("Product updated.", "success")
             return redirect(url_for("products.detail", doc_id=p["_id"]))
         for e in errors:
             flash(e, "error")
@@ -235,5 +235,5 @@ def delete(doc_id):
     if p is None:
         abort(404)
     c.delete_one({"_id": p["_id"]})
-    flash(f"'{p.get('name', doc_id)}' delete ho gaya.", "success")
+    flash(f"'{p.get('name', doc_id)}' deleted.", "success")
     return redirect(url_for("products.index"))

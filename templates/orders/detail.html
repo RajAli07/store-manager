@@ -10,14 +10,14 @@
     <div class="btn-row">
         <a class="btn" href="{{ url_for('orders.edit', doc_id=o._id) }}">Edit</a>
         <form method="post" action="{{ url_for('orders.delete', doc_id=o._id) }}"
-            onsubmit="return confirm('Ye order permanently delete hoga. Pakka?')">
+            onsubmit="return confirm('This order will be permanently deleted. Are you sure?')">
             <button class="btn danger" type="submit">Delete</button>
         </form>
     </div>
 </div>
 
 <div class="card">
-    <h2>Status badlo</h2>
+    <h2>Change status</h2>
     <div class="btn-row">
         {% for s in statuses %}
         {% if s != o.status %}
@@ -107,7 +107,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="4" class="sub">Koi item nahi.</td>
+                    <td colspan="4" class="sub">No items.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -128,7 +128,7 @@
 {% endif %}
 
 <div class="card">
-    <h2>Raw document (MongoDB mein jaisa stored hai)</h2>
+    <h2>Raw document (as stored in MongoDB)</h2>
     <pre class="code">{{ o | pretty }}</pre>
 </div>
 {% endblock %}

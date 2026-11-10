@@ -59,13 +59,13 @@ def parse_form(form):
     customer_id = r.text("customer_id")
     status = r.text("status")
     if not customer_id:
-        r.errors.append("Customer ID zaroori hai.")
+        r.errors.append("Customer ID is required.")
     if status not in STATUSES:
-        r.errors.append("Status galat hai.")
+        r.errors.append("Invalid status.")
 
     items = r.json_list("items_json", "Items")
     if any(not isinstance(i, dict) for i in items):
-        r.errors.append("Items ka har element object hona chahiye.")
+        r.errors.append("Each item must be an object.")
         items = []
 
     sub = r.number("sub_total", "Sub total")
@@ -76,7 +76,7 @@ def parse_form(form):
         try:
             sub = sum(float(i.get("line_total", 0)) for i in items)
         except (TypeError, ValueError):
-            r.errors.append("Items ke line_total number hone chahiye.")
+            r.errors.append("Each item's line_total must be a number.")
             sub = 0
     tax, ship = tax or 0, ship or 0
 
@@ -143,7 +143,7 @@ def create():
         v = request.form.to_dict()
         fields, errors = parse_form(request.form)
         if not errors and find_by_id(contacts(), fields["customer_id"]) is None:
-            errors.append("Is Customer ID ka contact maujood nahi hai.")
+            errors.append("No contact exists with this customer ID.")
         if not errors:
             doc = unflatten(fields)
             doc["order_date"] = now()
@@ -152,9 +152,9 @@ def create():
             try:
                 coll().insert_one(doc)
             except DuplicateKeyError:
-                errors.append("Ye Order ID pehle se use mein hai.")
+                errors.append("This order ID is already in use.")
             else:
-                flash("Order ban gaya.", "success")
+                flash("Order created.", "success")
                 return redirect(url_for("orders.detail", doc_id=doc["_id"]))
         for e in errors:
             flash(e, "error")
@@ -175,13 +175,13 @@ def edit(doc_id):
         fields, errors = parse_form(request.form)
         if (not errors and fields["customer_id"] != o.get("customer_id")
                 and find_by_id(contacts(), fields["customer_id"]) is None):
-            errors.append("Is Customer ID ka contact maujood nahi hai.")
+            errors.append("No contact exists with this customer ID.")
         if not errors:
             update = {"$set": fields}
             if fields["status"] != o.get("status"):
                 update["$push"] = {"status_history": {"status": fields["status"], "at": now()}}
             coll().update_one({"_id": o["_id"]}, update)
-            flash("Order update ho gaya.", "success")
+            flash("Order updated.", "success")
             return redirect(url_for("orders.detail", doc_id=o["_id"]))
         for e in errors:
             flash(e, "error")
@@ -208,7 +208,7 @@ def set_status(doc_id):
             {"$set": {"status": new_status, "updated_at": now()},
              "$push": {"status_history": {"status": new_status, "at": now()}}},
         )
-        flash(f"Status badal kar {new_status} kar diya.", "success")
+        flash(f"Status changed to {new_status}.", "success")
     return redirect(url_for("orders.detail", doc_id=o["_id"]))
 
 
@@ -218,5 +218,5 @@ def delete(doc_id):
     if o is None:
         abort(404)
     coll().delete_one({"_id": o["_id"]})
-    flash(f"Order {o['_id']} delete ho gaya.", "success")
+    flash(f"Order {o['_id']} deleted.", "success")
     return redirect(url_for("orders.index"))

@@ -31,4 +31,4 @@ for name in ("products", "orders", "contacts"):
 
 check("/orders/yeh-id-nahi-hai", expect=404)
 
-print("\nSab theek hai." if all_ok else "\nKuch fail hua, upar dekho.")
+print("\nAll good." if all_ok else "\nSomething failed, see above.")

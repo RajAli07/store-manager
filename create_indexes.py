@@ -19,5 +19,5 @@ for coll_name, fields in INDEXES.items():
             print(f"skip   {coll_name}.{field}")
         else:
             c.create_index(field)
-            print(f"banaya {coll_name}.{field}")
+            print(f"created {coll_name}.{field}")
 print("Done.")

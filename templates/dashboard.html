@@ -23,7 +23,7 @@
     <a class="stat" href="{{ url_for('orders.index') }}">
         <span class="stat-label">Revenue</span>
         <span class="stat-num">{{ s.kpi.revenue | inr_short }}</span>
-        <span class="stat-sub">{{ "{:,}".format(s.kpi.valid_orders) }} orders (cancelled/returned ke bina)</span>
+        <span class="stat-sub">{{ "{:,}".format(s.kpi.valid_orders) }} orders (excluding cancelled/returned)</span>
     </a>
     <div class="stat">
         <span class="stat-label">Avg order value</span>
@@ -69,7 +69,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="sub">Abhi monthly data nahi hai.</p>
+        <p class="sub">No monthly data yet.</p>
         {% endif %}
     </div>
 
@@ -85,27 +85,27 @@
 
 <div class="cols">
     <div class="card">
-        <h2>Top products (kitne bike)</h2>
+        <h2>Top products (units sold)</h2>
         <ul class="hbars">
             {% for r in s.top_products %}
             {{ bar(r.name ~ ' · ' ~ r.sku, r.qty ~ ' sold', r.pct) }}
-            {% else %}<li class="sub">Data nahi.</li>{% endfor %}
+            {% else %}<li class="sub">No data.</li>{% endfor %}
         </ul>
     </div>
 
     <div class="card">
-        <h2>Top customers (kharche ke hisaab se)</h2>
+        <h2>Top customers (by spend)</h2>
         <ul class="hbars">
             {% for r in s.top_customers %}
             {{ bar(r.name, (r.spent | inr_short) ~ ' · ' ~ r.orders ~ ' orders', r.pct) }}
-            {% else %}<li class="sub">Data nahi.</li>{% endfor %}
+            {% else %}<li class="sub">No data.</li>{% endfor %}
         </ul>
     </div>
 </div>
 
 <div class="cols">
     <div class="card">
-        <h2>Restock chahiye (stock 10 ya kam)</h2>
+        <h2>Needs restocking (stock 10 or less)</h2>
         <div class="table-wrap">
             <table>
                 <tbody>
@@ -119,7 +119,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td class="sub">Sab products ka stock theek hai.</td>
+                        <td class="sub">All products are well stocked.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -128,7 +128,7 @@
     </div>
 
     <div class="card">
-        <h2>Category ke hisaab se inventory value</h2>
+        <h2>Inventory value by category</h2>
         <ul class="hbars">
             {% for r in s.by_category %}
             {{ bar(r.name, (r.value | inr_short) ~ ' · ' ~ "{:,}".format(r.products) ~ ' products', r.pct) }}
@@ -183,7 +183,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="sub">Abhi koi order nahi.</td>
+                    <td colspan="5" class="sub">No orders yet.</td>
                 </tr>
                 {% endfor %}
             </tbody>

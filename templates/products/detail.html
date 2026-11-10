@@ -10,7 +10,7 @@
     <div>
         <a class="btn" href="{{ url_for('products.edit', doc_id=p._id) }}">Edit</a>
         <form method="post" action="{{ url_for('products.delete', doc_id=p._id) }}" style="display:inline"
-            onsubmit="return confirm('Ye product permanently delete hoga. Pakka?')">
+            onsubmit="return confirm('This product will be permanently deleted. Are you sure?')">
             <button class="btn danger" type="submit">Delete</button>
         </form>
     </div>
@@ -82,7 +82,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="3" class="sub">Koi warehouse nahi.</td>
+                    <td colspan="3" class="sub">No warehouses.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -110,7 +110,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="3" class="sub">Koi variant nahi.</td>
+                    <td colspan="3" class="sub">No variants.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -119,7 +119,7 @@
 </div>
 
 <div class="card">
-    <h2>Raw document (MongoDB mein jaisa stored hai)</h2>
+    <h2>Raw document (as stored in MongoDB)</h2>
     <pre class="code">{{ p | pretty }}</pre>
 </div>
 {% endblock %}

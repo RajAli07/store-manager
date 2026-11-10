@@ -12,7 +12,7 @@
         <div class="form-grid">
             {% if mode == 'new' %}
             <div>
-                <label>ID (optional, khali chhodo to auto)</label>
+                <label>ID (optional, leave blank to auto-generate)</label>
                 <input type="text" name="_id" value="{{ v._id }}">
             </div>
             {% endif %}
@@ -25,7 +25,7 @@
             </div>
             <div><label>Sub category</label><input type="text" name="sub_category" value="{{ v.sub_category }}"></div>
             <div><label>Brand</label><input type="text" name="brand" value="{{ v.brand }}"></div>
-            <div><label>Tags (comma se alag)</label><input type="text" name="tags" value="{{ v.tags }}"></div>
+            <div><label>Tags (comma-separated)</label><input type="text" name="tags" value="{{ v.tags }}"></div>
         </div>
     </div>
 
@@ -39,7 +39,7 @@
             <div><label>GST %</label><input type="number" step="any" min="0" name="gst_percent"
                     value="{{ v.gst_percent }}"></div>
         </div>
-        <p class="sub">Discount % khud calculate hota hai.</p>
+        <p class="sub">Discount % is calculated automatically.</p>
     </div>
 
     <div class="card">
@@ -48,7 +48,7 @@
             <div><label>Total stock</label><input type="number" min="0" name="total_stock" value="{{ v.total_stock }}">
             </div>
         </div>
-        <p class="sub">Agar neeche warehouses diye hain to total stock unka jod hoga aur ye box ignore hoga.</p>
+        <p class="sub">If warehouses are provided below, total stock is their sum and this box is ignored.</p>
         <label style="margin-top:12px">Warehouses (JSON list)</label>
         <textarea class="json" name="warehouses"
             placeholder='[{"city": "Delhi", "code": "DEL-01", "stock": 40}]'>{{ v.warehouses }}</textarea>

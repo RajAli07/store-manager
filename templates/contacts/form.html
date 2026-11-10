@@ -11,7 +11,7 @@
         <h2>Contact info</h2>
         <div class="form-grid">
             {% if mode == 'new' %}
-            <div><label>ID (khali chhodo to auto)</label><input type="text" name="_id" value="{{ v._id }}"></div>
+            <div><label>ID (leave blank to auto-generate)</label><input type="text" name="_id" value="{{ v._id }}"></div>
             {% endif %}
             <div><label>Name *</label><input type="text" name="name" value="{{ v.name }}" required></div>
             <div><label>Email *</label><input type="email" name="email" value="{{ v.email }}" required></div>

@@ -11,7 +11,7 @@
         <a class="btn" href="{{ url_for('orders.create', customer_id=c._id) }}">New order</a>
         <a class="btn" href="{{ url_for('contacts.edit', doc_id=c._id) }}">Edit</a>
         <form method="post" action="{{ url_for('contacts.delete', doc_id=c._id) }}"
-            onsubmit="return confirm('Ye contact permanently delete hoga. Pakka?')">
+            onsubmit="return confirm('This contact will be permanently deleted. Are you sure?')">
             <button class="btn danger" type="submit">Delete</button>
         </form>
     </div>
@@ -55,10 +55,10 @@
         <dl class="kv">
             <dt>Total orders</dt>
             <dd>{{ order_count }}</dd>
-            <dt>Total kharcha</dt>
+            <dt>Total spent</dt>
             <dd><b>{{ spent | inr }}</b></dd>
         </dl>
-        <p class="sub">Kharche mein cancelled aur returned orders nahi gine jaate.</p>
+        <p class="sub">Cancelled and returned orders are not counted in total spent.</p>
     </div>
 </div>
 
@@ -86,7 +86,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="sub">Koi address nahi.</td>
+                    <td colspan="5" class="sub">No addresses.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -116,7 +116,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="4" class="sub">Is contact ka abhi koi order nahi.</td>
+                    <td colspan="4" class="sub">This contact has no orders yet.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -125,7 +125,7 @@
 </div>
 
 <div class="card">
-    <h2>Raw document (MongoDB mein jaisa stored hai)</h2>
+    <h2>Raw document (as stored in MongoDB)</h2>
     <pre class="code">{{ c | pretty }}</pre>
 </div>
 {% endblock %}

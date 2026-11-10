@@ -53,15 +53,15 @@ def parse_form(form):
     name = r.text("name")
     email = r.text("email").lower()
     if not name:
-        r.errors.append("Name zaroori hai.")
+        r.errors.append("Name is required.")
     if not email or "@" not in email:
-        r.errors.append("Sahi email daalo.")
+        r.errors.append("Enter a valid email address.")
 
     wallet = r.number("wallet_balance", "Wallet balance")
     points = r.number("points", "Points", int)
     addresses = r.json_list("addresses_json", "Addresses")
     if any(not isinstance(a, dict) for a in addresses):
-        r.errors.append("Addresses ka har element object hona chahiye.")
+        r.errors.append("Each address must be an object.")
         addresses = []
 
     fields = {
@@ -133,7 +133,7 @@ def create():
         v = request.form.to_dict()
         fields, errors = parse_form(request.form)
         if not errors and coll().count_documents({"email": fields["email"]}, limit=1):
-            errors.append("Is email ka contact pehle se maujood hai.")
+            errors.append("A contact with this email already exists.")
         if not errors:
             doc = unflatten(fields)
             doc["created_at"] = now()
@@ -141,9 +141,9 @@ def create():
             try:
                 coll().insert_one(doc)
             except DuplicateKeyError:
-                errors.append("Ye ID pehle se use mein hai.")
+                errors.append("This ID is already in use.")
             else:
-                flash("Contact add ho gaya.", "success")
+                flash("Contact added.", "success")
                 return redirect(url_for("contacts.detail", doc_id=doc["_id"]))
         for e in errors:
             flash(e, "error")
@@ -163,10 +163,10 @@ def edit(doc_id):
         v = request.form.to_dict()
         fields, errors = parse_form(request.form)
         if not errors and coll().count_documents({"email": fields["email"], "_id": {"$ne": c["_id"]}}, limit=1):
-            errors.append("Is email ka dusra contact pehle se maujood hai.")
+            errors.append("Another contact with this email already exists.")
         if not errors:
             coll().update_one({"_id": c["_id"]}, {"$set": fields})
-            flash("Contact update ho gaya.", "success")
+            flash("Contact updated.", "success")
             return redirect(url_for("contacts.detail", doc_id=c["_id"]))
         for e in errors:
             flash(e, "error")
@@ -186,8 +186,8 @@ def delete(doc_id):
         abort(404)
     n = orders().count_documents({"customer_id": c["_id"]})
     if n:
-        flash(f"Delete nahi ho sakta: is contact ke {n} orders hain. Pehle wo orders delete karo.", "error")
+        flash(f"Cannot delete: this contact has {n} orders. Delete those orders first.", "error")
         return redirect(url_for("contacts.detail", doc_id=c["_id"]))
     coll().delete_one({"_id": c["_id"]})
-    flash(f"'{c.get('name', doc_id)}' delete ho gaya.", "success")
+    flash(f"'{c.get('name', doc_id)}' deleted.", "success")
     return redirect(url_for("contacts.index"))

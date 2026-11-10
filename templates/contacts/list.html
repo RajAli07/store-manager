@@ -11,7 +11,7 @@
 <form class="filters" method="get">
     <div class="grow">
         <label>Search</label>
-        <input type="text" name="q" value="{{ q }}" placeholder="Name, email, phone, ID ya city">
+        <input type="text" name="q" value="{{ q }}" placeholder="Name, email, phone, ID or city">
     </div>
     <div class="field">
         <label>Role</label>
@@ -84,7 +84,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="10" class="sub">Koi contact nahi mila.</td>
+                <td colspan="10" class="sub">No contacts found.</td>
             </tr>
             {% endfor %}
         </tbody>

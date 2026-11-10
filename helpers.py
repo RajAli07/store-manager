@@ -133,7 +133,7 @@ class FormReader:
         try:
             return cast(raw)
         except ValueError:
-            self.errors.append(f"{label or name} ek number hona chahiye.")
+            self.errors.append(f"{label or name} must be a number.")
             return None
 
     def json_list(self, name, label=None):
@@ -144,10 +144,10 @@ class FormReader:
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as e:
-            self.errors.append(f"{label}: JSON galat hai ({e.msg}, line {e.lineno}).")
+            self.errors.append(f"{label}: invalid JSON ({e.msg}, line {e.lineno}).")
             return []
         if not isinstance(data, list):
-            self.errors.append(f"{label}: list hona chahiye, jaise [ {{...}} ].")
+            self.errors.append(f"{label}: must be a list, e.g. [ {{...}} ].")
             return []
         return data
 
