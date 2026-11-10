@@ -1,5 +1,7 @@
 import math
 import re
+import json
+import uuid
 from datetime import datetime
 
 from bson import ObjectId
@@ -76,3 +78,75 @@ def dig(doc, path, default=None):
         else:
             return default
     return cur
+
+STATUS_CLASS = {
+    "Delivered": "ok",
+    "Shipped": "warn",
+    "Processing": "warn",
+    "Cancelled": "bad",
+    "Returned": "bad",
+}
+
+
+def status_class(status):
+    return STATUS_CLASS.get(status, "")
+
+
+def tidy(n):
+    """5.0 -> 5, 5.456 -> 5.46"""
+    if n is None:
+        return 0
+    n = float(n)
+    return int(n) if n.is_integer() else round(n, 2)
+
+
+def new_id(prefix):
+    return f"{prefix}-{uuid.uuid4().hex[:8].upper()}"
+
+
+def unflatten(flat):
+    """{'pricing.mrp': 5} -> {'pricing': {'mrp': 5}}"""
+    out = {}
+    for key, val in flat.items():
+        parts = key.split(".")
+        d = out
+        for p in parts[:-1]:
+            d = d.setdefault(p, {})
+        d[parts[-1]] = val
+    return out
+
+
+class FormReader:
+    """Form se text / number / JSON list nikalta hai aur errors jama karta hai."""
+
+    def __init__(self, form):
+        self.form = form
+        self.errors = []
+
+    def text(self, name):
+        return self.form.get(name, "").strip()
+
+    def number(self, name, label=None, cast=float):
+        raw = self.text(name)
+        if raw == "":
+            return None
+        try:
+            return cast(raw)
+        except ValueError:
+            self.errors.append(f"{label or name} ek number hona chahiye.")
+            return None
+
+    def json_list(self, name, label=None):
+        label = label or name
+        raw = self.text(name)
+        if not raw:
+            return []
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as e:
+            self.errors.append(f"{label}: JSON galat hai ({e.msg}, line {e.lineno}).")
+            return []
+        if not isinstance(data, list):
+            self.errors.append(f"{label}: list hona chahiye, jaise [ {{...}} ].")
+            return []
+        return data

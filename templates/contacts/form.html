@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Add contact' if mode == 'new' else 'Edit contact' }} · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>{{ 'Add contact' if mode == 'new' else 'Edit: ' ~ c.name }}</h1>
+</div>
+
+<form method="post">
+    <div class="card">
+        <h2>Contact info</h2>
+        <div class="form-grid">
+            {% if mode == 'new' %}
+            <div><label>ID (khali chhodo to auto)</label><input type="text" name="_id" value="{{ v._id }}"></div>
+            {% endif %}
+            <div><label>Name *</label><input type="text" name="name" value="{{ v.name }}" required></div>
+            <div><label>Email *</label><input type="email" name="email" value="{{ v.email }}" required></div>
+            <div><label>Phone</label><input type="text" name="phone" value="{{ v.phone }}"></div>
+            <div>
+                <label>Role</label>
+                <input type="text" name="role" value="{{ v.role }}" list="role-list">
+                <datalist id="role-list">{% for r in roles %}<option value="{{ r }}">{% endfor %}</datalist>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Membership</h2>
+        <div class="form-grid">
+            <div>
+                <label>Tier</label>
+                <input type="text" name="tier" value="{{ v.tier }}" list="tier-list">
+                <datalist id="tier-list">{% for t in tiers %}<option value="{{ t }}">{% endfor %}</datalist>
+            </div>
+            <div><label>Wallet balance</label><input type="number" step="any" min="0" name="wallet_balance"
+                    value="{{ v.wallet_balance }}"></div>
+            <div><label>Points</label><input type="number" min="0" name="points" value="{{ v.points }}"></div>
+            <div><label class="check"><input type="checkbox" name="is_prime" value="1" {{ 'checked' if v.is_prime }}>
+                    Prime member</label></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Addresses</h2>
+        <label>Addresses (JSON list, coordinates [longitude, latitude])</label>
+        <textarea class="json" name="addresses_json"
+            placeholder='[{"type": "Home", "street": "12 MG Road", "city": "Delhi", "pincode": "110001", "location": {"type": "Point", "coordinates": [77.2090, 28.6139]}}]'>{{ v['addresses_json'] }}</textarea>
+    </div>
+
+    <button class="btn primary" type="submit">{{ 'Add contact' if mode == 'new' else 'Save changes' }}</button>
+    <a class="btn"
+        href="{{ url_for('contacts.index') if mode == 'new' else url_for('contacts.detail', doc_id=c._id) }}">Cancel</a>
+</form>
+{% endblock %}

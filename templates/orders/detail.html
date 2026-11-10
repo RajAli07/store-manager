@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Order {{ o._id }} · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Order {{ o._id }} <span class="badge {{ status_class(o.status) }}">{{ o.status }}</span></h1>
+        <span class="sub"><a href="{{ url_for('orders.index') }}">Orders</a> / {{ o._id }}</span>
+    </div>
+    <div class="btn-row">
+        <a class="btn" href="{{ url_for('orders.edit', doc_id=o._id) }}">Edit</a>
+        <form method="post" action="{{ url_for('orders.delete', doc_id=o._id) }}"
+            onsubmit="return confirm('Ye order permanently delete hoga. Pakka?')">
+            <button class="btn danger" type="submit">Delete</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Status badlo</h2>
+    <div class="btn-row">
+        {% for s in statuses %}
+        {% if s != o.status %}
+        <form method="post" action="{{ url_for('orders.set_status', doc_id=o._id) }}">
+            <input type="hidden" name="status" value="{{ s }}">
+            <button class="btn sm" type="submit">Mark as {{ s }}</button>
+        </form>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="cols">
+    <div class="card">
+        <h2>Order info</h2>
+        <dl class="kv">
+            <dt>Order ID</dt>
+            <dd><code>{{ o._id }}</code></dd>
+            <dt>Date</dt>
+            <dd>{{ o.order_date | dt }}</dd>
+            <dt>Customer</dt>
+            <dd>
+                {% if customer %}
+                <a href="{{ url_for('contacts.detail', doc_id=customer._id) }}">{{ customer.name }}</a>
+                <span class="sub">({{ o.customer_id }})</span>
+                {% else %}{{ o.customer_id or '-' }}{% endif %}
+            </dd>
+            <dt>Payment</dt>
+            <dd>
+                {{ dig(o, 'payment.method', '-') }}
+                {% if dig(o, 'payment.is_paid') %}<span class="badge ok">Paid</span>{% else %}<span
+                    class="badge warn">Pending</span>{% endif %}
+            </dd>
+            <dt>Last updated</dt>
+            <dd>{{ o.updated_at | dt }}</dd>
+        </dl>
+    </div>
+
+    <div class="card">
+        <h2>Shipping</h2>
+        <dl class="kv">
+            <dt>City</dt>
+            <dd>{{ dig(o, 'shipping.city', '-') }}</dd>
+            <dt>State</dt>
+            <dd>{{ dig(o, 'shipping.state', '-') }}</dd>
+            <dt>Pincode</dt>
+            <dd>{{ dig(o, 'shipping.pincode', '-') }}</dd>
+            <dt>Courier</dt>
+            <dd>{{ dig(o, 'shipping.courier', '-') }}</dd>
+        </dl>
+    </div>
+
+    <div class="card">
+        <h2>Billing</h2>
+        <dl class="kv">
+            <dt>Sub total</dt>
+            <dd>{{ dig(o, 'billing.sub_total') | inr }}</dd>
+            <dt>Tax (GST)</dt>
+            <dd>{{ dig(o, 'billing.tax_amount') | inr }}</dd>
+            <dt>Shipping fee</dt>
+            <dd>{{ dig(o, 'billing.shipping_fee') | inr }}</dd>
+            <dt>Grand total</dt>
+            <dd><b>{{ dig(o, 'billing.grand_total') | inr }}</b></dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Items ({{ (o['items'] or []) | length }})</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>SKU</th>
+                    <th class="num">Qty</th>
+                    <th class="num">Line total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for it in o['items'] or [] %}
+                <tr>
+                    <td>{{ it.name }}</td>
+                    <td>{{ it.sku }}</td>
+                    <td class="num">{{ it.quantity }}</td>
+                    <td class="num">{{ it.line_total | inr }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="sub">Koi item nahi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if o.status_history %}
+<div class="card">
+    <h2>Status history</h2>
+    <ul class="timeline">
+        {% for h in o.status_history | reverse %}
+        <li><span><span class="badge {{ status_class(h.status) }}">{{ h.status }}</span></span><span class="sub">{{ h.at
+                | dt }}</span></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>Raw document (MongoDB mein jaisa stored hai)</h2>
+    <pre class="code">{{ o | pretty }}</pre>
+</div>
+{% endblock %}

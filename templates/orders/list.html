@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% from "_pager.html" import pager with context %}
+{% block title %}Orders · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>Orders</h1>
+    <a class="btn primary" href="{{ url_for('orders.create') }}">New order</a>
+</div>
+
+<form class="filters" method="get">
+    <div class="grow">
+        <label>Search</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Order ID, customer ID ya city">
+    </div>
+    <div class="field">
+        <label>Status</label>
+        <select name="status">
+            <option value="">All</option>
+            {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s==status }}>{{ s }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label>Payment</label>
+        <select name="payment">
+            <option value="">All</option>
+            <option value="paid" {{ 'selected' if payment=='paid' }}>Paid</option>
+            <option value="pending" {{ 'selected' if payment=='pending' }}>Pending</option>
+        </select>
+    </div>
+    <div class="field">
+        <label>Sort by</label>
+        <select name="sort">
+            <option value="newest" {{ 'selected' if sort=='newest' }}>Newest first</option>
+            <option value="oldest" {{ 'selected' if sort=='oldest' }}>Oldest first</option>
+            <option value="total_high" {{ 'selected' if sort=='total_high' }}>Total: high to low</option>
+            <option value="total_low" {{ 'selected' if sort=='total_low' }}>Total: low to high</option>
+        </select>
+    </div>
+    <button class="btn primary" type="submit">Apply</button>
+    <a class="btn" href="{{ url_for('orders.index') }}">Reset</a>
+</form>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th class="num">Items</th>
+                <th>City</th>
+                <th>Payment</th>
+                <th class="num">Total</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for o in data["items"] %}
+            <tr>
+                <td><a href="{{ url_for('orders.detail', doc_id=o._id) }}">{{ o._id }}</a></td>
+                <td>{{ o.order_date | dt }}</td>
+                <td>{% if o.customer_id %}<a href="{{ url_for('contacts.detail', doc_id=o.customer_id) }}">{{
+                        o.customer_id }}</a>{% else %}-{% endif %}</td>
+                <td class="num">{{ (o['items'] or []) | length }}</td>
+                <td>{{ dig(o, 'shipping.city', '-') }}</td>
+                <td>
+                    {{ dig(o, 'payment.method', '-') }}
+                    {% if dig(o, 'payment.is_paid') %}<span class="badge ok">Paid</span>{% else %}<span
+                        class="badge warn">Pending</span>{% endif %}
+                </td>
+                <td class="num">{{ dig(o, 'billing.grand_total') | inr }}</td>
+                <td><span class="badge {{ status_class(o.status) }}">{{ o.status or '-' }}</span></td>
+                <td class="actions">
+                    <a class="btn sm" href="{{ url_for('orders.detail', doc_id=o._id) }}">View</a>
+                    <a class="btn sm" href="{{ url_for('orders.edit', doc_id=o._id) }}">Edit</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="sub">Koi order nahi mila.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{{ pager(data, 'orders.index') }}
+{% endblock %}

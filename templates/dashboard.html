@@ -19,5 +19,65 @@
         <span class="stat-label">Contacts</span>
         <span class="stat-num">{{ "{:,}".format(counts.contacts) }}</span>
     </a>
+    <div class="stat">
+        <span class="stat-label">Revenue (cancelled/returned ke bina)</span>
+        <span class="stat-num">{{ revenue | inr }}</span>
+    </div>
+</div>
+
+<div class="stat-row" style="margin-top:14px">
+    <a class="stat" href="{{ url_for('products.index', stock='low') }}">
+        <span class="stat-label">Low stock products</span>
+        <span class="stat-num">{{ low_stock }}</span>
+    </a>
+    <a class="stat" href="{{ url_for('products.index', stock='out') }}">
+        <span class="stat-label">Out of stock products</span>
+        <span class="stat-num">{{ out_stock }}</span>
+    </a>
+</div>
+
+<div class="cols" style="margin-top:16px">
+    <div class="card">
+        <h2>Orders by status</h2>
+        <div class="table-wrap">
+            <table>
+                <tbody>
+                    {% for s in by_status %}
+                    <tr>
+                        <td><a href="{{ url_for('orders.index', status=s._id) }}"><span
+                                    class="badge {{ status_class(s._id) }}">{{ s._id or 'No status' }}</span></a></td>
+                        <td class="num">{{ "{:,}".format(s.count) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class="sub">Abhi koi order nahi.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Recent orders</h2>
+        <div class="table-wrap">
+            <table>
+                <tbody>
+                    {% for o in recent %}
+                    <tr>
+                        <td><a href="{{ url_for('orders.detail', doc_id=o._id) }}">{{ o._id }}</a></td>
+                        <td>{{ o.order_date | dt }}</td>
+                        <td class="num">{{ dig(o, 'billing.grand_total') | inr }}</td>
+                        <td><span class="badge {{ status_class(o.status) }}">{{ o.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class="sub">Abhi koi order nahi.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

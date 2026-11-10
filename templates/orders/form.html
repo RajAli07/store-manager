@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New order' if mode == 'new' else 'Edit order' }} · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>{{ 'New order' if mode == 'new' else 'Edit order ' ~ o._id }}</h1>
+</div>
+
+<form method="post">
+    <div class="card">
+        <h2>Order</h2>
+        <div class="form-grid">
+            {% if mode == 'new' %}
+            <div><label>Order ID (khali chhodo to auto)</label><input type="text" name="_id" value="{{ v._id }}"></div>
+            {% endif %}
+            <div><label>Customer ID *</label><input type="text" name="customer_id" value="{{ v.customer_id }}" required>
+            </div>
+            <div>
+                <label>Status *</label>
+                <select name="status">
+                    {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s==v.status }}>{{ s }}</option>{%
+                    endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Payment method</label>
+                <input type="text" name="payment_method" value="{{ v.payment_method }}" list="pay-list">
+                <datalist id="pay-list">{% for m in methods %}<option value="{{ m }}">{% endfor %}</datalist>
+            </div>
+            <div>
+                <label class="check"><input type="checkbox" name="is_paid" value="1" {{ 'checked' if v.is_paid }}>
+                    Payment ho chuka hai</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Shipping</h2>
+        <div class="form-grid">
+            <div><label>City</label><input type="text" name="shipping_city" value="{{ v.shipping_city }}"></div>
+            <div><label>State</label><input type="text" name="shipping_state" value="{{ v.shipping_state }}"></div>
+            <div><label>Pincode</label><input type="text" name="shipping_pincode" value="{{ v.shipping_pincode }}">
+            </div>
+            <div><label>Courier</label><input type="text" name="shipping_courier" value="{{ v.shipping_courier }}">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Billing</h2>
+        <div class="form-grid">
+            <div><label>Sub total</label><input type="number" step="any" min="0" name="sub_total"
+                    value="{{ v.sub_total }}"></div>
+            <div><label>Tax (GST) amount</label><input type="number" step="any" min="0" name="tax_amount"
+                    value="{{ v.tax_amount }}"></div>
+            <div><label>Shipping fee</label><input type="number" step="any" min="0" name="shipping_fee"
+                    value="{{ v.shipping_fee }}"></div>
+        </div>
+        <p class="sub">Grand total khud banta hai (sub total + tax + shipping). Sub total khali chhodo to items ke
+            line_total ka jod le liya jaata hai.</p>
+    </div>
+
+    <div class="card">
+        <h2>Items</h2>
+        <label>Items (JSON list)</label>
+        <textarea class="json" name="items_json"
+            placeholder='[{"name": "Product", "sku": "SKU-001", "quantity": 2, "line_total": 1998}]'>{{ v['items_json'] }}</textarea>
+    </div>
+
+    <button class="btn primary" type="submit">{{ 'Create order' if mode == 'new' else 'Save changes' }}</button>
+    <a class="btn"
+        href="{{ url_for('orders.index') if mode == 'new' else url_for('orders.detail', doc_id=o._id) }}">Cancel</a>
+</form>
+{% endblock %}

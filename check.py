@@ -3,29 +3,32 @@ from db import get_db
 
 app.testing = True
 client = app.test_client()
+db = get_db()
 all_ok = True
 
 
-def check(url):
+def check(url, expect=200):
     global all_ok
-    r = client.get(url)
-    if r.status_code != 200:
-        all_ok = False
-    print("OK  " if r.status_code == 200 else "FAIL", r.status_code, url)
+    code = client.get(url).status_code
+    ok = code == expect
+    all_ok = all_ok and ok
+    print("OK  " if ok else "FAIL", code, url)
 
-
-first = get_db()["products"].find_one()
 
 for url in [
     "/",
-    "/products/",
-    "/products/?q=(&stock=low&sort=price_high&page=2",
-    "/products/new",
+    "/products/", "/products/?q=%28&stock=low&sort=price_high&page=2", "/products/new",
+    "/orders/", "/orders/?status=Shipped&payment=paid&sort=total_high&page=2", "/orders/?q=%28", "/orders/new",
+    "/contacts/", "/contacts/?q=%28&prime=yes&sort=points&page=2", "/contacts/new",
 ]:
     check(url)
 
-if first:
-    check(f"/products/{first['_id']}")
-    check(f"/products/{first['_id']}/edit")
+for name in ("products", "orders", "contacts"):
+    doc = db[name].find_one()
+    if doc:
+        check(f"/{name}/{doc['_id']}")
+        check(f"/{name}/{doc['_id']}/edit")
+
+check("/orders/yeh-id-nahi-hai", expect=404)
 
 print("\nSab theek hai." if all_ok else "\nKuch fail hua, upar dekho.")

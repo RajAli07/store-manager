@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% from "_pager.html" import pager with context %}
+{% block title %}Contacts · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>Contacts</h1>
+    <a class="btn primary" href="{{ url_for('contacts.create') }}">Add contact</a>
+</div>
+
+<form class="filters" method="get">
+    <div class="grow">
+        <label>Search</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Name, email, phone, ID ya city">
+    </div>
+    <div class="field">
+        <label>Role</label>
+        <select name="role">
+            <option value="">All</option>
+            {% for r in roles %}<option value="{{ r }}" {{ 'selected' if r==role }}>{{ r }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label>Tier</label>
+        <select name="tier">
+            <option value="">All</option>
+            {% for t in tiers %}<option value="{{ t }}" {{ 'selected' if t==tier }}>{{ t }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label>Prime</label>
+        <select name="prime">
+            <option value="">All</option>
+            <option value="yes" {{ 'selected' if prime=='yes' }}>Prime</option>
+            <option value="no" {{ 'selected' if prime=='no' }}>Non-prime</option>
+        </select>
+    </div>
+    <div class="field">
+        <label>Sort by</label>
+        <select name="sort">
+            <option value="name" {{ 'selected' if sort=='name' }}>Name</option>
+            <option value="points" {{ 'selected' if sort=='points' }}>Points: high to low</option>
+            <option value="wallet" {{ 'selected' if sort=='wallet' }}>Wallet: high to low</option>
+        </select>
+    </div>
+    <button class="btn primary" type="submit">Apply</button>
+    <a class="btn" href="{{ url_for('contacts.index') }}">Reset</a>
+</form>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Tier</th>
+                <th class="num">Points</th>
+                <th class="num">Wallet</th>
+                <th>City</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in data["items"] %}
+            {% set first = (c.addresses or []) | first %}
+            <tr>
+                <td><a href="{{ url_for('contacts.detail', doc_id=c._id) }}">{{ c._id }}</a></td>
+                <td>{{ c.name }}</td>
+                <td><span class="badge">{{ c.role or '-' }}</span></td>
+                <td>{{ c.email }}</td>
+                <td>{{ c.phone }}</td>
+                <td>{{ dig(c, 'membership.tier', '-') }}{% if dig(c, 'membership.is_prime') %} <span
+                        class="badge ok">Prime</span>{% endif %}</td>
+                <td class="num">{{ dig(c, 'membership.points', 0) }}</td>
+                <td class="num">{{ dig(c, 'membership.wallet_balance') | inr }}</td>
+                <td>{{ first.city if first else '-' }}</td>
+                <td class="actions">
+                    <a class="btn sm" href="{{ url_for('contacts.detail', doc_id=c._id) }}">View</a>
+                    <a class="btn sm" href="{{ url_for('contacts.edit', doc_id=c._id) }}">Edit</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="10" class="sub">Koi contact nahi mila.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{{ pager(data, 'contacts.index') }}
+{% endblock %}

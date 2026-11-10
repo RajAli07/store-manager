@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}{{ c.name }} · Store Manager{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>{{ c.name }}</h1>
+        <span class="sub"><a href="{{ url_for('contacts.index') }}">Contacts</a> / {{ c._id }}</span>
+    </div>
+    <div class="btn-row">
+        <a class="btn" href="{{ url_for('orders.create', customer_id=c._id) }}">New order</a>
+        <a class="btn" href="{{ url_for('contacts.edit', doc_id=c._id) }}">Edit</a>
+        <form method="post" action="{{ url_for('contacts.delete', doc_id=c._id) }}"
+            onsubmit="return confirm('Ye contact permanently delete hoga. Pakka?')">
+            <button class="btn danger" type="submit">Delete</button>
+        </form>
+    </div>
+</div>
+
+<div class="cols">
+    <div class="card">
+        <h2>Contact info</h2>
+        <dl class="kv">
+            <dt>ID</dt>
+            <dd><code>{{ c._id }}</code></dd>
+            <dt>Role</dt>
+            <dd><span class="badge">{{ c.role or '-' }}</span></dd>
+            <dt>Email</dt>
+            <dd>{{ c.email or '-' }}</dd>
+            <dt>Phone</dt>
+            <dd>{{ c.phone or '-' }}</dd>
+            <dt>Created</dt>
+            <dd>{{ c.created_at | dt }}</dd>
+            <dt>Updated</dt>
+            <dd>{{ c.updated_at | dt }}</dd>
+        </dl>
+    </div>
+
+    <div class="card">
+        <h2>Membership</h2>
+        <dl class="kv">
+            <dt>Tier</dt>
+            <dd>{{ dig(c, 'membership.tier', '-') }}</dd>
+            <dt>Prime</dt>
+            <dd>{% if dig(c, 'membership.is_prime') %}<span class="badge ok">Yes</span>{% else %}No{% endif %}</dd>
+            <dt>Points</dt>
+            <dd>{{ dig(c, 'membership.points', 0) }}</dd>
+            <dt>Wallet balance</dt>
+            <dd>{{ dig(c, 'membership.wallet_balance') | inr }}</dd>
+        </dl>
+    </div>
+
+    <div class="card">
+        <h2>Order summary</h2>
+        <dl class="kv">
+            <dt>Total orders</dt>
+            <dd>{{ order_count }}</dd>
+            <dt>Total kharcha</dt>
+            <dd><b>{{ spent | inr }}</b></dd>
+        </dl>
+        <p class="sub">Kharche mein cancelled aur returned orders nahi gine jaate.</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Addresses ({{ (c.addresses or []) | length }})</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Street</th>
+                    <th>City</th>
+                    <th>Pincode</th>
+                    <th>Coordinates (lng, lat)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in c.addresses or [] %}
+                <tr>
+                    <td>{{ a.type }}</td>
+                    <td>{{ a.street }}</td>
+                    <td>{{ a.city }}</td>
+                    <td>{{ a.pincode }}</td>
+                    <td><code>{{ dig(a, 'location.coordinates', []) | join(', ') }}</code></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="sub">Koi address nahi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Orders (latest {{ recent | length }} of {{ order_count }})</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th class="num">Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in recent %}
+                <tr>
+                    <td><a href="{{ url_for('orders.detail', doc_id=o._id) }}">{{ o._id }}</a></td>
+                    <td>{{ o.order_date | dt }}</td>
+                    <td class="num">{{ dig(o, 'billing.grand_total') | inr }}</td>
+                    <td><span class="badge {{ status_class(o.status) }}">{{ o.status }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="sub">Is contact ka abhi koi order nahi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Raw document (MongoDB mein jaisa stored hai)</h2>
+    <pre class="code">{{ c | pretty }}</pre>
+</div>
+{% endblock %}
